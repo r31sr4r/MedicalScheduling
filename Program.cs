@@ -1,7 +1,5 @@
 using MudBlazor.Services;
 using MedicalScheduling.Presentation.Components;
-using MedicalScheduling.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using MedicalScheduling.Application.Interfaces;
 using MedicalScheduling.Infrastructure.Repositories;
 using MedicalScheduling.Infrastructure.Configurations;
