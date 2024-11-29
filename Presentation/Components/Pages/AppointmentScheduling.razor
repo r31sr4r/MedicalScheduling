@@ -10,7 +10,13 @@
     <MudText Typo="Typo.h4" Align="Align.Center">Schedule an Appointment</MudText>
 
     <!-- Dropdown de Médicos -->
-    <MudSelect @bind-Value="SelectedDoctorId" Label="Select a Doctor" Color="Color.Primary" Dense="true">
+    <MudSelect T="int" 
+               Label="Select a Doctor" 
+               Color="Color.Primary" 
+               Dense="true" 
+               ValueChanged="OnDoctorSelected" 
+               Value="@SelectedDoctorId">
+        <MudSelectItem Value="0" Disabled="true">Select a Doctor</MudSelectItem>
         @foreach (var doctor in Doctors)
         {
             <MudSelectItem Value="@doctor.Id">@doctor.Name (@doctor.Specialty)</MudSelectItem>
@@ -18,42 +24,126 @@
     </MudSelect>
 
     <!-- Calendário -->
-    @if (AvailableDates.Any())
+    @if (SelectedDoctorId > 0)
     {
-        <MudPaper Elevation="4" Class="mt-4 pa-4">
-            <MudText Typo="Typo.body1" GutterBottom="true">Select a Date:</MudText>
-            <MudDatePicker @bind-Date="SelectedDate" Color="Color.Primary" Dense="true" DisableToolbar="false" />
-        </MudPaper>
+<MudDatePicker 
+    T="DateTime?"
+    Date="@SelectedDate"
+    DateChanged="OnDateChanged"  // Alteração
+    Label="Select a Date"
+    Color="Color.Primary"
+    MinDate="@MinDate"
+    MaxDate="@MaxDate"
+    DisableToolbar="false"
+    DisabledDates="IsDateDisabled" />
+    }
+
+    <!-- Dropdown de Horários -->
+    @if (SelectedDate != null && AvailableTimes.Any())
+    {
+        <MudSelect T="TimeSpan" 
+                   Label="Select a Time" 
+                   Color="Color.Primary" 
+                   Dense="true" 
+                   @bind-Value="SelectedTime">
+            <MudSelectItem Value="@TimeSpan.Zero" Disabled="true">Select a Time</MudSelectItem>
+            @foreach (var time in AvailableTimes)
+            {
+                <MudSelectItem Value="@time">@time.ToString(@"hh\:mm")</MudSelectItem>
+            }
+        </MudSelect>
     }
 
     <!-- Botão para Confirmar -->
-    <MudButton Disabled="@(!CanSchedule)" Class="mt-4" Variant="Variant.Filled" Color="Color.Success" OnClick="ScheduleAppointment">
+    <MudButton Disabled="@(!CanSchedule)" 
+               Class="mt-4" 
+               Variant="Variant.Filled" 
+               Color="Color.Success" 
+               OnClick="ScheduleAppointment">
         Schedule Appointment
     </MudButton>
 </MudContainer>
 
 @code {
     private List<Doctor> Doctors = new();
-    private int SelectedDoctorId;
+    private int SelectedDoctorId = 0;
     private List<DateTime> AvailableDates = new();
+    private List<TimeSpan> AvailableTimes = new();
     private DateTime? SelectedDate;
+    private TimeSpan SelectedTime;
 
-    private bool CanSchedule => SelectedDoctorId > 0 && SelectedDate != null;
+    private bool CanSchedule => 
+        SelectedDoctorId > 0 && 
+        SelectedDate != null && 
+        SelectedTime != TimeSpan.Zero;
+
+    private DateTime MinDate = DateTime.Today;
+    private DateTime MaxDate = DateTime.Today.AddDays(7);
 
     protected override async Task OnInitializedAsync()
     {
         Doctors = (await AppointmentService.GetDoctorsAsync()).ToList();
     }
 
-    private async Task OnDoctorSelected()
+    private async Task OnDoctorSelected(int value)
     {
-        AvailableDates = (await AppointmentService.GetAvailableDatesAsync(SelectedDoctorId)).ToList();
+        SelectedDoctorId = value;
+        SelectedDate = null;
+        AvailableTimes = new List<TimeSpan>();
+
+        var availableDates = await AppointmentService.GetAvailableDatesAsync(SelectedDoctorId);
+        AvailableDates = availableDates
+            .Select(d => d.Date)
+            .Distinct()
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private bool IsDateDisabled(DateTime date)
+    {
+        return !AvailableDates.Contains(date.Date);
+    }
+
+    private async Task OnDateChanged(DateTime? date)
+    {
+        if (date == null || SelectedDoctorId == 0)
+        {
+            AvailableTimes = new List<TimeSpan>();
+            return;
+        }
+
+        SelectedDate = date;
+
+        var availableDates = await AppointmentService.GetAvailableDatesAsync(SelectedDoctorId);
+
+        AvailableTimes = availableDates
+            .Where(d => d.Date.Date == SelectedDate.Value.Date)
+            .Select(d => d.TimeOfDay)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+
+        StateHasChanged();
     }
 
     private async Task ScheduleAppointment()
     {
-        // Lógica para agendar consulta
-        await Task.Delay(500); // Simulação
-        Console.WriteLine($"Appointment scheduled with Doctor ID: {SelectedDoctorId} on {SelectedDate}");
+        try
+        {
+            var appointment = new Appointment
+            {
+                DoctorId = SelectedDoctorId,
+                PatientId = 1, // Simulado para testes
+                DateTime = SelectedDate.Value.Date.Add(SelectedTime)
+            };
+
+            await AppointmentService.ScheduleAppointment(appointment);
+            Console.WriteLine($"Appointment scheduled with Doctor ID: {SelectedDoctorId} on {SelectedDate} at {SelectedTime}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 }
