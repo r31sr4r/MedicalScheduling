@@ -19,6 +19,13 @@ public class AppointmentService
         return await _doctorRepository.GetActiveDoctorsAsync();
     }
 
+    public async Task<Appointment?> GetAppointmentByIdAsync(int appointmentId)
+    {
+        var appointments = await _appointmentRepository.GetAllAsync();
+        return appointments.FirstOrDefault(a => a.Id == appointmentId);
+    }
+
+
     public async Task<IEnumerable<DateTime>> GetAvailableDatesAsync(int doctorId)
     {
         var availableTimes = new List<DateTime>();
@@ -71,5 +78,24 @@ public class AppointmentService
         }
 
         await _appointmentRepository.AddAsync(appointment);
+    }
+
+     public async Task<List<Appointment>> GetAppointmentsByPatientAsync(int patientId)
+    {
+        var allAppointments = await _appointmentRepository.GetAllAsync();
+        return allAppointments.Where(a => a.PatientId == patientId && a.IsActive && a.DateTime > DateTime.Now).ToList();
+    }
+
+    public async Task CancelAppointmentAsync(int appointmentId)
+    {
+        var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+        if (appointment == null || !appointment.IsActive)
+        {
+            throw new InvalidOperationException("Appointment not found or already canceled.");
+        }
+
+        // Cancelamento lógico
+        appointment.IsActive = false;
+        await _appointmentRepository.UpdateAsync(appointment);
     }
 }

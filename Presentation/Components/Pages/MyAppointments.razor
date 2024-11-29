@@ -1,0 +1,75 @@
+@page "/my-appointments"
+@inject AppointmentService AppointmentService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@using MedicalScheduling.Application.Services
+@using MedicalScheduling.Domain.Entities
+@using MudBlazor
+
+<PageTitle>My Appointments</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h4" Align="Align.Center">My Appointments</MudText>
+
+    @if (Appointments.Any())
+    {
+        <MudTable Items="Appointments" Bordered="true" Striped="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Doctor</MudTh>
+                <MudTh>Date</MudTh>
+                <MudTh>Time</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Doctor.Name (@context.Doctor.Specialty)</MudTd>
+                <MudTd>@context.DateTime.ToString("MMMM dd, yyyy")</MudTd>
+                <MudTd>@context.DateTime.ToString("hh:mm tt")</MudTd>
+                <MudTd>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => ReScheduleAppointment(context)">
+                        Reschedule
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => CancelAppointment(context.Id)">
+                        Cancel
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-4">No appointments found.</MudText>
+    }
+</MudContainer>
+
+@code {
+    private List<Appointment> Appointments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Substitua pelo ID do paciente autenticado
+        int patientId = 1; // Exemplo para testes
+        Appointments = await AppointmentService.GetAppointmentsByPatientAsync(patientId);
+    }
+
+    private async Task CancelAppointment(int appointmentId)
+    {
+        try
+        {
+            await AppointmentService.CancelAppointmentAsync(appointmentId);
+            Snackbar.Add("Appointment canceled successfully!", Severity.Success);
+
+            // Atualiza a lista de consultas
+            Appointments = Appointments.Where(a => a.Id != appointmentId).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error canceling appointment: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void ReScheduleAppointment(Appointment appointment)
+    {
+        // Redireciona para a página de agendamento, passando os detalhes da consulta atual
+        NavigationManager.NavigateTo($"/appointment-scheduling?appointmentId={appointment.Id}");
+    }
+}
