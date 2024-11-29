@@ -1,0 +1,46 @@
+@page "/patient-login"
+@inject PatientService PatientService
+@inject NavigationManager NavigationManager
+@inject UserState UserState
+@using MedicalScheduling.Application.Services
+@using MudBlazor
+
+<PageTitle>Patient Login</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Welcome Patient</MudText>
+
+    <MudTextField T="string" 
+                  Label="Enter your Email" 
+                  @bind-Value="PatientEmail" 
+                  Placeholder="example@domain.com" 
+                  Required="true" />
+
+    <MudButton Disabled="@string.IsNullOrWhiteSpace(PatientEmail)" 
+               Class="mt-4" 
+               Variant="Variant.Filled" 
+               Color="Color.Primary" 
+               OnClick="VerifyPatient">
+        Continue
+    </MudButton>
+</MudContainer>
+
+@code {
+    private string PatientEmail = string.Empty;
+
+    private async Task VerifyPatient()
+    {
+        var patient = await PatientService.GetPatientByEmailAsync(PatientEmail);
+
+        if (patient != null)
+        {
+            // Atualiza o estado com o ID do paciente autenticado
+            UserState.SetAsPatient(patient.Id);
+            NavigationManager.NavigateTo("/my-appointments");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/patient-registration");
+        }
+    }
+}

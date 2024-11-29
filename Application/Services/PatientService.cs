@@ -1,6 +1,5 @@
 using MedicalScheduling.Application.Interfaces;
 using MedicalScheduling.Domain.Entities;
-using MedicalScheduling.Infrastructure.Repositories;
 
 namespace MedicalScheduling.Application.Services;
 

@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using MedicalScheduling.Application.Services
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject UserState UserState
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -10,7 +13,18 @@
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+            
+            <!-- MudMenu para o botão de logout -->
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
+                <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+            </MudMenu>
+        </MudAppBar>
+
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -99,6 +113,12 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    private void Logout()
+    {
+        UserState.Reset(); // Reseta o estado do usuário
+        NavigationManager.NavigateTo("/"); // Redireciona para a página inicial
+    }
 }
 
 

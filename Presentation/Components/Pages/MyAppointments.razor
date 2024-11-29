@@ -2,6 +2,7 @@
 @inject AppointmentService AppointmentService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject UserState UserState
 @using MedicalScheduling.Application.Services
 @using MedicalScheduling.Domain.Entities
 @using MudBlazor
@@ -46,9 +47,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Substitua pelo ID do paciente autenticado
-        int patientId = 1; // Exemplo para testes
-        Appointments = await AppointmentService.GetAppointmentsByPatientAsync(patientId);
+        // Obtém o ID do paciente do estado
+        var patientId = UserState.PatientId;
+
+        if (patientId == null)
+        {
+            NavigationManager.NavigateTo("/patient-login");
+            return;
+        }
+
+        Appointments = await AppointmentService.GetAppointmentsByPatientAsync(patientId.Value);
     }
 
     private async Task CancelAppointment(int appointmentId)
@@ -69,7 +77,6 @@
 
     private void ReScheduleAppointment(Appointment appointment)
     {
-        // Redireciona para a página de agendamento, passando os detalhes da consulta atual
         NavigationManager.NavigateTo($"/appointment-scheduling?appointmentId={appointment.Id}");
     }
 }

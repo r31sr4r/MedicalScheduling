@@ -23,6 +23,8 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<PatientService>();
+builder.Services.AddSingleton<UserState>();
+
 
 var app = builder.Build();
 

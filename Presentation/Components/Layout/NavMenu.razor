@@ -1,9 +1,37 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    <MudNavLink Href="/appointment-scheduling" Icon="@Icons.Material.Filled.CalendarMonth">Appointment Scheduling</MudNavLink>
-    <MudNavLink Href="/patient-registration" Icon="@Icons.Material.Filled.PersonAdd">Register Patient</MudNavLink>
-    <MudNavLink Href="/my-appointments" Icon="@Icons.Material.Filled.List">My Appointments</MudNavLink>
-    <MudNavLink Href="/doctor-appointments" Icon="@Icons.Material.Filled.Schedule">Doctor's Appointments</MudNavLink>
+﻿@using MedicalScheduling.Application.Services
+<MudNavMenu>
+    @if (UserState.IsDoctor)
+    {
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Href="/doctor-appointments" Icon="@Icons.Material.Filled.CalendarMonth">My Appointments</MudNavLink>
+    }
+    else if (UserState.IsPatient)
+    {
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Href="/my-appointments" Icon="@Icons.Material.Filled.CalendarMonth">My Appointments</MudNavLink>
+        <MudNavLink Href="/appointment-scheduling" Icon="@Icons.Material.Filled.CalendarMonth">Appointment Scheduling</MudNavLink>
+
+    }
 </MudNavMenu>
+
+@code {
+    [Inject] private UserState UserState { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        // Inscreve-se no evento de alteração de estado
+        UserState.StateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged()
+    {
+        // Força a reconstrução do componente
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Remove a inscrição no evento ao destruir o componente
+        UserState.StateChanged -= OnStateChanged;
+    }
+}
