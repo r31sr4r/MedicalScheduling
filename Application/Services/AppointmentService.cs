@@ -6,45 +6,45 @@ namespace MedicalScheduling.Application.Services;
 public class AppointmentService
 {
     private readonly IDoctorRepository _doctorRepository;
-    private readonly IRepository<Appointment> _appointmentRepository;
+    private readonly IAppointmentRepository _appointmentRepository;
 
-    public AppointmentService(IDoctorRepository doctorRepository, IRepository<Appointment> appointmentRepository)
+    public AppointmentService(IDoctorRepository doctorRepository, IAppointmentRepository appointmentRepository)
     {
         _doctorRepository = doctorRepository;
         _appointmentRepository = appointmentRepository;
     }
 
+    // Retorna todos os médicos ativos
     public async Task<IEnumerable<Doctor>> GetDoctorsAsync()
     {
         return await _doctorRepository.GetActiveDoctorsAsync();
     }
 
+    // Retorna um Appointment com detalhes (Patient, Doctor)
     public async Task<Appointment?> GetAppointmentByIdAsync(int appointmentId)
     {
-        var appointments = await _appointmentRepository.GetAllAsync();
+        var appointments = await _appointmentRepository.GetAppointmentsWithDetailsAsync();
         return appointments.FirstOrDefault(a => a.Id == appointmentId);
     }
 
-
+    // Calcula datas e horários disponíveis para um médico
     public async Task<IEnumerable<DateTime>> GetAvailableDatesAsync(int doctorId)
     {
         var availableTimes = new List<DateTime>();
         var today = DateTime.Today;
 
-        // Janela de horários para dias úteis (8-12, 14-18)
         var workingHours = new (TimeSpan Start, TimeSpan End)[]
         {
             (TimeSpan.FromHours(8), TimeSpan.FromHours(12)),
             (TimeSpan.FromHours(14), TimeSpan.FromHours(18))
         };
 
-        // Buscar consultas existentes do médico
-        var existingAppointments = (await _appointmentRepository.GetAllAsync())
-            .Where(a => a.DoctorId == doctorId && a.DateTime.Date >= today)
+        // Consulta horários ocupados do médico
+        var existingAppointments = (await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId))
+            .Where(a => a.IsActive)
             .Select(a => a.DateTime)
             .ToHashSet();
 
-        // Gerar horários disponíveis para os próximos 7 dias
         for (int day = 0; day < 7; day++)
         {
             var date = today.AddDays(day);
@@ -68,9 +68,9 @@ public class AppointmentService
         return availableTimes;
     }
 
+    // Agenda uma nova consulta
     public async Task ScheduleAppointment(Appointment appointment)
     {
-        // Validar se o horário está disponível
         var availableDates = await GetAvailableDatesAsync(appointment.DoctorId);
         if (!availableDates.Contains(appointment.DateTime))
         {
@@ -80,12 +80,16 @@ public class AppointmentService
         await _appointmentRepository.AddAsync(appointment);
     }
 
-     public async Task<List<Appointment>> GetAppointmentsByPatientAsync(int patientId)
+    // Obtém todas as consultas futuras de um paciente
+    public async Task<List<Appointment>> GetAppointmentsByPatientAsync(int patientId)
     {
-        var allAppointments = await _appointmentRepository.GetAllAsync();
-        return allAppointments.Where(a => a.PatientId == patientId && a.IsActive && a.DateTime > DateTime.Now).ToList();
+        return (await _appointmentRepository.GetAppointmentsByPatientIdAsync(patientId))
+            .Where(a => a.IsActive && a.DateTime > DateTime.Now)
+            .OrderBy(a => a.DateTime)
+            .ToList();
     }
 
+    // Cancela uma consulta logicamente
     public async Task CancelAppointmentAsync(int appointmentId)
     {
         var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
@@ -94,8 +98,15 @@ public class AppointmentService
             throw new InvalidOperationException("Appointment not found or already canceled.");
         }
 
-        // Cancelamento lógico
         appointment.IsActive = false;
         await _appointmentRepository.UpdateAsync(appointment);
+    }
+
+    // Obtém consultas de um médico
+    public async Task<List<Appointment>> GetAppointmentsByDoctorIdAsync(int doctorId)
+    {
+        return (await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId))
+            .OrderBy(a => a.DateTime)
+            .ToList();
     }
 }

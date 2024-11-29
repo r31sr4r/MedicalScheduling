@@ -1,0 +1,90 @@
+@page "/doctor-appointments"
+@inject AppointmentService AppointmentService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@using MedicalScheduling.Application.Services
+@using MedicalScheduling.Domain.Entities
+@using MudBlazor
+
+<PageTitle>Doctor's Appointments</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h4" Align="Align.Center">My Appointments</MudText>
+
+    <!-- Dropdown de Médicos -->
+    <MudSelect T="int" 
+               Label="Select Yourself (Doctor)" 
+               Color="Color.Primary" 
+               Dense="true" 
+               ValueChanged="OnDoctorSelected" 
+               Value="@SelectedDoctorId">
+        <MudSelectItem Value="0" Disabled="true">Select a Doctor</MudSelectItem>
+        @foreach (var doctor in Doctors)
+        {
+            <MudSelectItem Value="@doctor.Id">@doctor.Name (@doctor.Specialty)</MudSelectItem>
+        }
+    </MudSelect>
+
+    <!-- Tabela de Consultas -->
+    @if (Appointments.Any())
+    {
+        <MudTable Items="Appointments" Bordered="true" Hover="true" Dense="true">
+            <HeaderContent>
+                <MudTh>Patient</MudTh>
+                <MudTh>Date</MudTh>
+                <MudTh>Time</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Patient.Name</MudTd>
+                <MudTd>@context.DateTime.ToString("MMMM dd, yyyy")</MudTd>
+                <MudTd>@context.DateTime.ToString("hh:mm tt")</MudTd>
+                <MudTd>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="(() => ViewAppointmentDetails(context))">
+                        Details
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (SelectedDoctorId > 0)
+    {
+        <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Warning">
+            No appointments found for the selected doctor.
+        </MudText>
+    }
+</MudContainer>
+
+@code {
+    private List<Doctor> Doctors = new();
+    private int SelectedDoctorId = 0;
+    private List<Appointment> Appointments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carrega todos os médicos para o dropdown
+        Doctors = (await AppointmentService.GetDoctorsAsync()).ToList();
+    }
+
+    private async Task OnDoctorSelected(int value)
+    {
+        SelectedDoctorId = value;
+
+        // Carrega as consultas do médico selecionado
+        Appointments = await AppointmentService.GetAppointmentsByDoctorIdAsync(SelectedDoctorId);
+
+        // Log de verificação
+        foreach (var appointment in Appointments)
+        {
+            Console.WriteLine($"Appointment ID: {appointment.Id}, Patient: {appointment.Patient?.Name}, Date: {appointment.DateTime}");
+        }
+
+        StateHasChanged();
+    }
+
+
+    private void ViewAppointmentDetails(Appointment appointment)
+    {
+        Snackbar.Add($"Appointment Details:\nPatient: {appointment.Patient.Name}\nDate: {appointment.DateTime}", Severity.Info);
+    }
+}
