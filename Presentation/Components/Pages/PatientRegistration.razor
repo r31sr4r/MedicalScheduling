@@ -1,0 +1,43 @@
+@page "/patient-registration"
+@inject PatientService PatientService
+@inject ISnackbar Snackbar
+@using MedicalScheduling.Application.Services
+@using MedicalScheduling.Domain.Entities
+@using MudBlazor
+
+<PageTitle>Patient Registration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudText Typo="Typo.h4" Align="Align.Center">Register Patient</MudText>
+
+    <MudTextField T="string" Label="Name" @bind-Value="Patient.Name" Required="true" />
+    <MudTextField T="string" Label="Email" @bind-Value="Patient.Email" Required="true" />
+
+    <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Success" OnClick="RegisterPatient">
+        Register
+    </MudButton>
+</MudContainer>
+
+@code {
+    private Patient Patient = new();
+
+    private async Task RegisterPatient()
+    {
+        if (string.IsNullOrWhiteSpace(Patient.Name) || string.IsNullOrWhiteSpace(Patient.Email))
+        {
+            Snackbar.Add("Name and Email are required.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await PatientService.RegisterPatientAsync(Patient);
+            Snackbar.Add("Patient registered successfully!", Severity.Success);
+            Patient = new Patient();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

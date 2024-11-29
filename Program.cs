@@ -21,6 +21,7 @@ builder.Services.AddAppConnections(builder.Configuration);
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<AppointmentService>();
+builder.Services.AddScoped<PatientService>();
 
 var app = builder.Build();
 
