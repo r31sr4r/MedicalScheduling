@@ -1,0 +1,59 @@
+@page "/appointment-scheduling"
+@inject AppointmentService AppointmentService
+@using MedicalScheduling.Application.Services
+@using MedicalScheduling.Domain.Entities
+@using MudBlazor
+
+<PageTitle>Appointment Scheduling</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h4" Align="Align.Center">Schedule an Appointment</MudText>
+
+    <!-- Dropdown de Médicos -->
+    <MudSelect @bind-Value="SelectedDoctorId" Label="Select a Doctor" Color="Color.Primary" Dense="true">
+        @foreach (var doctor in Doctors)
+        {
+            <MudSelectItem Value="@doctor.Id">@doctor.Name (@doctor.Specialty)</MudSelectItem>
+        }
+    </MudSelect>
+
+    <!-- Calendário -->
+    @if (AvailableDates.Any())
+    {
+        <MudPaper Elevation="4" Class="mt-4 pa-4">
+            <MudText Typo="Typo.body1" GutterBottom="true">Select a Date:</MudText>
+            <MudDatePicker @bind-Date="SelectedDate" Color="Color.Primary" Dense="true" DisableToolbar="false" />
+        </MudPaper>
+    }
+
+    <!-- Botão para Confirmar -->
+    <MudButton Disabled="@(!CanSchedule)" Class="mt-4" Variant="Variant.Filled" Color="Color.Success" OnClick="ScheduleAppointment">
+        Schedule Appointment
+    </MudButton>
+</MudContainer>
+
+@code {
+    private List<Doctor> Doctors = new();
+    private int SelectedDoctorId;
+    private List<DateTime> AvailableDates = new();
+    private DateTime? SelectedDate;
+
+    private bool CanSchedule => SelectedDoctorId > 0 && SelectedDate != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Doctors = (await AppointmentService.GetDoctorsAsync()).ToList();
+    }
+
+    private async Task OnDoctorSelected()
+    {
+        AvailableDates = (await AppointmentService.GetAvailableDatesAsync(SelectedDoctorId)).ToList();
+    }
+
+    private async Task ScheduleAppointment()
+    {
+        // Lógica para agendar consulta
+        await Task.Delay(500); // Simulação
+        Console.WriteLine($"Appointment scheduled with Doctor ID: {SelectedDoctorId} on {SelectedDate}");
+    }
+}
