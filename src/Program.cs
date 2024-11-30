@@ -22,7 +22,7 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<PatientService>();
 builder.Services.AddSingleton<UserState>();
-builder.Services.AddSingleton<EmailService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 var app = builder.Build();
