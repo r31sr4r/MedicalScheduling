@@ -7,9 +7,9 @@ public class AppointmentService
 {
     private readonly IDoctorRepository _doctorRepository;
     private readonly IAppointmentRepository _appointmentRepository;
-    private readonly EmailService _emailService;
+    private readonly IEmailService _emailService;
 
-    public AppointmentService(IDoctorRepository doctorRepository, IAppointmentRepository appointmentRepository, EmailService emailService)
+    public AppointmentService(IDoctorRepository doctorRepository, IAppointmentRepository appointmentRepository, IEmailService emailService)
     {
         _doctorRepository = doctorRepository;
         _appointmentRepository = appointmentRepository;

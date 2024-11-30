@@ -1,9 +1,10 @@
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using MedicalScheduling.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 
-public class EmailService
+public class EmailService : IEmailService
 {
     private readonly string _smtpServer;
     private readonly int _smtpPort;

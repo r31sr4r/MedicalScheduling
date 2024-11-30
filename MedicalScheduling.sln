@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedicalScheduling", "MedicalScheduling.csproj", "{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedicalScheduling", "src\MedicalScheduling.csproj", "{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{46FD4613-7D4C-46C6-80F6-54EE7334298D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1A64DFD7-CFBA-499E-A9AD-98B3C76F9DA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MedicalScheduling.Tests", "tests\MedicalScheduling.Tests\MedicalScheduling.Tests.csproj", "{9B8ED751-F752-4348-8CD7-0BEB12AB9192}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +21,17 @@ Global
 		{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B8ED751-F752-4348-8CD7-0BEB12AB9192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B8ED751-F752-4348-8CD7-0BEB12AB9192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B8ED751-F752-4348-8CD7-0BEB12AB9192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B8ED751-F752-4348-8CD7-0BEB12AB9192}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B4F40EEA-7147-4ED4-BDCA-ADAAF0F75CBE} = {46FD4613-7D4C-46C6-80F6-54EE7334298D}
+		{9B8ED751-F752-4348-8CD7-0BEB12AB9192} = {1A64DFD7-CFBA-499E-A9AD-98B3C76F9DA7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD512B49-2198-4073-8BD9-F6148076FDFD}
