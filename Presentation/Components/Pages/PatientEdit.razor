@@ -1,0 +1,61 @@
+@page "/patient-edit"
+@inject PatientService PatientService
+@inject ISnackbar Snackbar
+@inject UserState UserState
+@inject NavigationManager NavigationManager
+@using MedicalScheduling.Application.Services
+@using MedicalScheduling.Domain.Entities
+@using MudBlazor
+
+<PageTitle>Edit Patient Info</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudText Typo="Typo.h4" Align="Align.Center">Edit Personal Information</MudText>
+
+    @if (Patient != null)
+    {
+        <MudTextField T="string" Label="Name" @bind-Value="Patient.Name" Required="true" />
+        <MudTextField T="string" Label="Email" @bind-Value="Patient.Email" Required="true" Disabled="true" />
+        <MudTextField T="string" Label="Phone Number" @bind-Value="Patient.PhoneNumber" Placeholder="(XX) XXXXX-XXXX" />
+        <MudTextField T="string" Label="Address" @bind-Value="Patient.Address" />
+
+        <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Success" OnClick="UpdatePatient">
+            Save Changes
+        </MudButton>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-4">Loading...</MudText>
+    }
+</MudContainer>
+
+@code {
+    private Patient? Patient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var patientId = UserState.PatientId;
+        if (patientId == null)
+        {
+            NavigationManager.NavigateTo("/patient-login");
+            return;
+        }
+
+        Patient = await PatientService.GetPatientByIdAsync(patientId.Value);
+    }
+
+    private async Task UpdatePatient()
+    {
+        if (Patient == null) return;
+
+        try
+        {
+            await PatientService.UpdatePatientAsync(Patient);
+            Snackbar.Add("Your information has been updated successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating information: {ex.Message}", Severity.Error);
+        }
+    }
+}

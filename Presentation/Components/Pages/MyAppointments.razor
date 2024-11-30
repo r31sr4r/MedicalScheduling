@@ -77,6 +77,7 @@
 
     private void ReScheduleAppointment(Appointment appointment)
     {
-        NavigationManager.NavigateTo($"/appointment-scheduling?appointmentId={appointment.Id}");
+        NavigationManager.NavigateTo($"/appointment-scheduling/{appointment.Id}");
     }
+
 }

@@ -109,4 +109,15 @@ public class AppointmentService
             .OrderBy(a => a.DateTime)
             .ToList();
     }
+
+    public async Task UpdateAppointmentAsync(Appointment appointment)
+    {
+        if (appointment == null)
+        {
+            throw new ArgumentNullException(nameof(appointment));
+        }
+
+        await _appointmentRepository.UpdateAsync(appointment);
+    }
+
 }

@@ -3,6 +3,8 @@
 @inject PatientService PatientService
 @inject ISnackbar Snackbar
 @inject UserState UserState
+@inject NavigationManager NavigationManager
+
 @using MedicalScheduling.Application.Services
 @using MedicalScheduling.Domain.Entities
 @using MudBlazor
@@ -166,26 +168,53 @@
     {
         try
         {
-            var appointment = new Appointment
+            if (AppointmentId.HasValue)
             {
-                DoctorId = SelectedDoctorId,
-                PatientId = Patient!.Id,
-                DateTime = SelectedDate.Value.Date.Add(SelectedTime)
-            };
+                // Atualizar consulta existente
+                var existingAppointment = await AppointmentService.GetAppointmentByIdAsync(AppointmentId.Value);
 
-            await AppointmentService.ScheduleAppointment(appointment);
+                if (existingAppointment == null)
+                {
+                    Snackbar.Add("Appointment not found.", Severity.Error);
+                    return;
+                }
 
-            Snackbar.Add($"Appointment scheduled successfully with Doctor ID: {SelectedDoctorId} on {SelectedDate.Value:MMMM dd, yyyy} at {SelectedTime:hh\\:mm}!", Severity.Success);
+                existingAppointment.DoctorId = SelectedDoctorId;
+                existingAppointment.DateTime = SelectedDate.Value.Date.Add(SelectedTime);
 
+                await AppointmentService.UpdateAppointmentAsync(existingAppointment);
+
+                Snackbar.Add($"Appointment rescheduled successfully with Doctor ID: {SelectedDoctorId} on {SelectedDate.Value:MMMM dd, yyyy} at {SelectedTime:hh\\:mm}!", Severity.Success);
+            }
+            else
+            {
+                // Criar nova consulta
+                var newAppointment = new Appointment
+                {
+                    DoctorId = SelectedDoctorId,
+                    PatientId = Patient!.Id,
+                    DateTime = SelectedDate.Value.Date.Add(SelectedTime)
+                };
+
+                await AppointmentService.ScheduleAppointment(newAppointment);
+
+                Snackbar.Add($"Appointment scheduled successfully with Doctor ID: {SelectedDoctorId} on {SelectedDate.Value:MMMM dd, yyyy} at {SelectedTime:hh\\:mm}!", Severity.Success);
+            }
+
+            // Limpar campos após o reagendamento
             SelectedDoctorId = 0;
             SelectedDate = null;
             SelectedTime = TimeSpan.Zero;
             AvailableDates.Clear();
             AvailableTimes.Clear();
+
+            // Redireciona para a lista de consultas do paciente
+            NavigationManager.NavigateTo("/my-appointments");
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error scheduling appointment: {ex.Message}", Severity.Error);
         }
     }
+
 }

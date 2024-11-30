@@ -32,5 +32,21 @@ public class PatientService
     public async Task<Patient?> GetPatientByIdAsync(int patientId) 
         => await _patientRepository.GetByIdAsync(patientId);
 
+    public async Task UpdatePatientAsync(Patient patient)
+    {
+        var existingPatient = await _patientRepository.GetByIdAsync(patient.Id);
+        if (existingPatient == null)
+        {
+            throw new InvalidOperationException("Patient not found.");
+        }
+
+        existingPatient.Name = patient.Name;
+        existingPatient.PhoneNumber = patient.PhoneNumber;
+        existingPatient.Address = patient.Address;
+
+        await _patientRepository.UpdateAsync(existingPatient);
+    }
+
+
 
 }

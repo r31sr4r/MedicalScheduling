@@ -14,6 +14,8 @@
 
     <MudTextField T="string" Label="Name" @bind-Value="Patient.Name" Required="true" />
     <MudTextField T="string" Label="Email" @bind-Value="Patient.Email" Required="true" />
+    <MudTextField T="string" Label="Phone Number" @bind-Value="Patient.PhoneNumber" Placeholder="(XX) XXXXX-XXXX" />
+    <MudTextField T="string" Label="Address" @bind-Value="Patient.Address" />
 
     <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Success" OnClick="RegisterPatient">
         Register
