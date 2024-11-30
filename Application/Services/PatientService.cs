@@ -28,4 +28,9 @@ public class PatientService
         var patients = await _patientRepository.GetAllAsync();
         return patients.FirstOrDefault(p => p.Email == email);
     }
+
+    public async Task<Patient?> GetPatientByIdAsync(int patientId) 
+        => await _patientRepository.GetByIdAsync(patientId);
+
+
 }

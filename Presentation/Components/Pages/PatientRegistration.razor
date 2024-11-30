@@ -1,6 +1,8 @@
 @page "/patient-registration"
 @inject PatientService PatientService
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject UserState UserState
 @using MedicalScheduling.Application.Services
 @using MedicalScheduling.Domain.Entities
 @using MudBlazor
@@ -31,9 +33,15 @@
 
         try
         {
+            // Registra o paciente no sistema
             await PatientService.RegisterPatientAsync(Patient);
             Snackbar.Add("Patient registered successfully!", Severity.Success);
-            Patient = new Patient();
+
+            // Configura o estado do usuário
+            UserState.SetAsPatient(Patient.Id);
+
+            // Redireciona para My Appointments
+            NavigationManager.NavigateTo("/my-appointments");
         }
         catch (Exception ex)
         {

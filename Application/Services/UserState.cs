@@ -7,20 +7,22 @@ public class UserState
     public bool IsDoctor { get; private set; }
     public bool IsPatient { get; private set; }
     public int? PatientId { get; private set; }
+    public string? UserName { get; private set; }
 
     public void SetAsDoctor()
     {
         IsDoctor = true;
         IsPatient = false;
-        PatientId = null; 
+        PatientId = null;
         NotifyStateChanged();
     }
 
-    public void SetAsPatient(int? patientId = null)
+    public void SetAsPatient(int? patientId = null, string? patientName = null)
     {
         IsPatient = true;
         IsDoctor = false;
         PatientId = patientId;
+        UserName = patientName;
         NotifyStateChanged();
     }
 
@@ -29,6 +31,7 @@ public class UserState
         IsDoctor = false;
         IsPatient = false;
         PatientId = null;
+        UserName = null;
         NotifyStateChanged();
     }
 

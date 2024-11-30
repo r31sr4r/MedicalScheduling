@@ -2,6 +2,7 @@
 @inject AppointmentService AppointmentService
 @inject PatientService PatientService
 @inject ISnackbar Snackbar
+@inject UserState UserState
 @using MedicalScheduling.Application.Services
 @using MedicalScheduling.Domain.Entities
 @using MudBlazor
@@ -11,92 +12,66 @@
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudText Typo="Typo.h4" Align="Align.Center">Schedule an Appointment</MudText>
 
-    <!-- Email do Paciente -->
-    <MudTextField T="string"
-                  Label="Enter your Email"
-                  @bind-Value="PatientEmail"
-                  Placeholder="example@domain.com"
-                  Required="true" />
+    <!-- Dropdown de Médicos -->
+    <MudSelect T="int" 
+               Label="Select a Doctor" 
+               Color="Color.Primary" 
+               Dense="true" 
+               ValueChanged="OnDoctorSelected" 
+               Value="@SelectedDoctorId">
+        <MudSelectItem Value="0" Disabled="true">Select a Doctor</MudSelectItem>
+        @foreach (var doctor in Doctors)
+        {
+            <MudSelectItem Value="@doctor.Id">@doctor.Name (@doctor.Specialty)</MudSelectItem>
+        }
+    </MudSelect>
 
-    <MudButton Disabled="@string.IsNullOrWhiteSpace(PatientEmail)"
-               Class="mt-4"
-               Variant="Variant.Filled"
-               Color="Color.Info"
-               OnClick="CheckPatient">
-        Verify Patient
-    </MudButton>
-
-    @if (Patient != null)
+    <!-- Calendário -->
+    @if (SelectedDoctorId > 0)
     {
-        <!-- Dropdown de Médicos -->
-        <MudSelect T="int" 
-                   Label="Select a Doctor" 
+        <MudDatePicker 
+            T="DateTime?"
+            Date="@SelectedDate"
+            DateChanged="OnDateChanged"
+            Label="Select a Date"
+            Color="Color.Primary"
+            MinDate="@MinDate"
+            MaxDate="@MaxDate"
+            DisableToolbar="false"
+            DisabledDates="IsDateDisabled" />
+    }
+
+    <!-- Dropdown de Horários -->
+    @if (SelectedDate != null && AvailableTimes.Any())
+    {
+        <MudSelect T="TimeSpan" 
+                   Label="Select a Time" 
                    Color="Color.Primary" 
                    Dense="true" 
-                   ValueChanged="OnDoctorSelected" 
-                   Value="@SelectedDoctorId">
-            <MudSelectItem Value="0" Disabled="true">Select a Doctor</MudSelectItem>
-            @foreach (var doctor in Doctors)
+                   @bind-Value="SelectedTime">
+            <MudSelectItem Value="@TimeSpan.Zero" Disabled="true">Select a Time</MudSelectItem>
+            @foreach (var time in AvailableTimes)
             {
-                <MudSelectItem Value="@doctor.Id">@doctor.Name (@doctor.Specialty)</MudSelectItem>
+                <MudSelectItem Value="@time">@time.ToString(@"hh\:mm")</MudSelectItem>
             }
         </MudSelect>
-
-        <!-- Calendário -->
-        @if (SelectedDoctorId > 0)
-        {
-            <MudDatePicker 
-                T="DateTime?"
-                Date="@SelectedDate"
-                DateChanged="OnDateChanged"
-                Label="Select a Date"
-                Color="Color.Primary"
-                MinDate="@MinDate"
-                MaxDate="@MaxDate"
-                DisableToolbar="false"
-                DisabledDates="IsDateDisabled" />
-        }
-
-        <!-- Dropdown de Horários -->
-        @if (SelectedDate != null && AvailableTimes.Any())
-        {
-            <MudSelect T="TimeSpan" 
-                       Label="Select a Time" 
-                       Color="Color.Primary" 
-                       Dense="true" 
-                       @bind-Value="SelectedTime">
-                <MudSelectItem Value="@TimeSpan.Zero" Disabled="true">Select a Time</MudSelectItem>
-                @foreach (var time in AvailableTimes)
-                {
-                    <MudSelectItem Value="@time">@time.ToString(@"hh\:mm")</MudSelectItem>
-                }
-            </MudSelect>
-        }
-
-        <!-- Botão para Confirmar -->
-        <MudButton Disabled="@(!CanSchedule)" 
-                   Class="mt-4" 
-                   Variant="Variant.Filled" 
-                   Color="Color.Success" 
-                   OnClick="ScheduleAppointment">
-            Schedule Appointment
-        </MudButton>
     }
-    else if (IsCheckingPatient)
-    {
-        <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Warning">
-            Patient not found. Please register first.
-        </MudText>
-    }
+
+    <!-- Botão para Confirmar -->
+    <MudButton Disabled="@(!CanSchedule)" 
+               Class="mt-4" 
+               Variant="Variant.Filled" 
+               Color="Color.Success" 
+               OnClick="ScheduleAppointment">
+        Schedule Appointment
+    </MudButton>
 </MudContainer>
 
 @code {
-
     [Parameter]
     public int? AppointmentId { get; set; }
-    private string PatientEmail = string.Empty;
+
     private Patient? Patient = null;
-    private bool IsCheckingPatient = false;
 
     private List<Doctor> Doctors = new();
     private int SelectedDoctorId = 0;
@@ -118,18 +93,24 @@
     {
         Doctors = (await AppointmentService.GetDoctorsAsync()).ToList();
 
+        if (UserState.PatientId == null)
+        {
+            Snackbar.Add("Please log in as a patient first.", Severity.Error);
+            return;
+        }
+
+        Patient = await PatientService.GetPatientByIdAsync(UserState.PatientId.Value);
+
         if (AppointmentId.HasValue)
         {
             var appointment = await AppointmentService.GetAppointmentByIdAsync(AppointmentId.Value);
             if (appointment != null)
             {
-                PatientEmail = appointment.Patient.Email;
                 Patient = appointment.Patient;
                 SelectedDoctorId = appointment.DoctorId;
                 SelectedDate = appointment.DateTime.Date;
                 SelectedTime = appointment.DateTime.TimeOfDay;
 
-                // Carrega as datas e horários disponíveis para o médico
                 await OnDoctorSelected(SelectedDoctorId);
             }
             else
@@ -138,24 +119,6 @@
             }
         }
     }
-
-    private async Task CheckPatient()
-    {
-        IsCheckingPatient = true;
-        Patient = await PatientService.GetPatientByEmailAsync(PatientEmail);
-
-        if (Patient == null)
-        {
-            Snackbar.Add("Patient not found. Please register first.", Severity.Warning);
-        }
-        else
-        {
-            Snackbar.Add($"Welcome back, {Patient.Name}!", Severity.Success);
-        }
-
-        StateHasChanged();
-    }
-
 
     private async Task OnDoctorSelected(int value)
     {
@@ -206,7 +169,7 @@
             var appointment = new Appointment
             {
                 DoctorId = SelectedDoctorId,
-                PatientId = Patient!.Id, // Paciente identificado pelo email
+                PatientId = Patient!.Id,
                 DateTime = SelectedDate.Value.Date.Add(SelectedTime)
             };
 
@@ -214,7 +177,6 @@
 
             Snackbar.Add($"Appointment scheduled successfully with Doctor ID: {SelectedDoctorId} on {SelectedDate.Value:MMMM dd, yyyy} at {SelectedTime:hh\\:mm}!", Severity.Success);
 
-            // Reseta os campos após o agendamento
             SelectedDoctorId = 0;
             SelectedDate = null;
             SelectedTime = TimeSpan.Zero;
@@ -226,5 +188,4 @@
             Snackbar.Add($"Error scheduling appointment: {ex.Message}", Severity.Error);
         }
     }
-
 }

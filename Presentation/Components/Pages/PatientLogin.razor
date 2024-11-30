@@ -34,8 +34,8 @@
 
         if (patient != null)
         {
-            // Atualiza o estado com o ID do paciente autenticado
-            UserState.SetAsPatient(patient.Id);
+            UserState.SetAsPatient(patient.Id, patient.Name);
+
             NavigationManager.NavigateTo("/my-appointments");
         }
         else
@@ -43,4 +43,5 @@
             NavigationManager.NavigateTo("/patient-registration");
         }
     }
+
 }

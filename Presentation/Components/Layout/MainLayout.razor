@@ -10,22 +10,25 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">FIAP - Medical Scheduling</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudAppBar Elevation="1">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-            <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
-            <MudSpacer />
-            <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-            
-            <!-- MudMenu para o botão de logout -->
-            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
-                <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
-            </MudMenu>
-        </MudAppBar>
+        
+        @if (UserState.IsPatient || UserState.IsDoctor)
+        {
+            <MudText Typo="Typo.body1" Class="mr-4">
+                Welcome, @UserState.UserName!
+            </MudText>
+        }
 
+
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+        
+        <!-- MudMenu para o botão de logout -->
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
+            <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+        </MudMenu>
     </MudAppBar>
+    
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
@@ -33,7 +36,6 @@
         @Body
     </MudMainContent>
 </MudLayout>
-
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -58,7 +60,6 @@
         };
     }
 
-
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
@@ -67,6 +68,12 @@
     private void DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
+    }
+
+    private void Logout()
+    {
+        UserState.Reset(); // Reseta o estado do usuário
+        NavigationManager.NavigateTo("/"); // Redireciona para a página inicial
     }
 
     private readonly PaletteLight _lightPalette = new()
@@ -113,12 +120,4 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
-
-    private void Logout()
-    {
-        UserState.Reset(); // Reseta o estado do usuário
-        NavigationManager.NavigateTo("/"); // Redireciona para a página inicial
-    }
 }
-
-
