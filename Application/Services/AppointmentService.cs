@@ -7,11 +7,13 @@ public class AppointmentService
 {
     private readonly IDoctorRepository _doctorRepository;
     private readonly IAppointmentRepository _appointmentRepository;
+    private readonly EmailService _emailService;
 
-    public AppointmentService(IDoctorRepository doctorRepository, IAppointmentRepository appointmentRepository)
+    public AppointmentService(IDoctorRepository doctorRepository, IAppointmentRepository appointmentRepository, EmailService emailService)
     {
         _doctorRepository = doctorRepository;
         _appointmentRepository = appointmentRepository;
+        _emailService = emailService;
     }
 
     // Retorna todos os médicos ativos
@@ -68,17 +70,51 @@ public class AppointmentService
         return availableTimes;
     }
 
-    // Agenda uma nova consulta
-    public async Task ScheduleAppointment(Appointment appointment)
+// Agenda uma nova consulta
+public async Task ScheduleAppointment(Appointment appointment)
+{
+    var availableDates = await GetAvailableDatesAsync(appointment.DoctorId);
+    if (!availableDates.Contains(appointment.DateTime))
     {
-        var availableDates = await GetAvailableDatesAsync(appointment.DoctorId);
-        if (!availableDates.Contains(appointment.DateTime))
-        {
-            throw new InvalidOperationException("The selected time is not available.");
-        }
-
-        await _appointmentRepository.AddAsync(appointment);
+        throw new InvalidOperationException("The selected time is not available.");
     }
+
+    // Adiciona a consulta ao banco de dados
+    await _appointmentRepository.AddAsync(appointment);
+
+    // Recupera informações do médico
+    var doctor = await _doctorRepository.GetByIdAsync(appointment.DoctorId);
+
+    if (doctor == null)
+    {
+        throw new InvalidOperationException("Doctor not found.");
+    }
+
+    // Envia notificação por e-mail para o paciente
+    var emailBody = $@"
+        <p>Dear {appointment.Patient.Name},</p>
+        <p>Your appointment with Dr. {doctor.Name} ({doctor.Specialty}) is confirmed:</p>
+        <ul>
+            <li><strong>Date:</strong> {appointment.DateTime:MMMM dd, yyyy}</li>
+            <li><strong>Time:</strong> {appointment.DateTime:hh:mm tt}</li>
+        </ul>
+        <p>Thank you for choosing our service!</p>";
+
+    try
+    {
+        await _emailService.SendEmailAsync(
+            appointment.Patient.Email,
+            "Appointment Confirmation",
+            emailBody
+        );
+    }
+    catch (Exception ex)
+    {
+        // Adicione logs para rastrear falhas no envio de e-mail
+        Console.WriteLine($"Failed to send email: {ex.Message}");
+    }
+}
+
 
     // Obtém todas as consultas futuras de um paciente
     public async Task<List<Appointment>> GetAppointmentsByPatientAsync(int patientId)
