@@ -7,8 +7,8 @@ EXPOSE 5001
 # Base image para build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["MedicalScheduling/MedicalScheduling.csproj", "./"]
-RUN dotnet restore "./MedicalScheduling.csproj"
+COPY ["MedicalScheduling/MedicalScheduling.csproj", "MedicalScheduling/"]
+RUN dotnet restore "MedicalScheduling/MedicalScheduling.csproj"
 COPY . .
 WORKDIR "/src/MedicalScheduling"
 RUN dotnet build -c Release -o /app/build
