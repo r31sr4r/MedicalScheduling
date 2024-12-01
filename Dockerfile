@@ -9,12 +9,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copie apenas o arquivo .csproj inicialmente
-COPY ["src/MedicalScheduling/MedicalScheduling.csproj", "src/MedicalScheduling/"]
-RUN dotnet restore "src/MedicalScheduling/MedicalScheduling.csproj"
+COPY ["src/MedicalScheduling.csproj", "./"]
+RUN dotnet restore "MedicalScheduling.csproj"
 
 # Copie todo o restante do projeto
-COPY src/ ./src
-WORKDIR "/src/MedicalScheduling"
+COPY src/ ./
 RUN dotnet build -c Release -o /app/build
 
 # Publica a aplicação
