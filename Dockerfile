@@ -7,9 +7,13 @@ EXPOSE 5001
 # Base image para build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["MedicalScheduling/MedicalScheduling.csproj", "MedicalScheduling/"]
-RUN dotnet restore "MedicalScheduling/MedicalScheduling.csproj"
-COPY . .
+
+# Copie apenas o arquivo .csproj inicialmente
+COPY ["src/MedicalScheduling/MedicalScheduling.csproj", "src/MedicalScheduling/"]
+RUN dotnet restore "src/MedicalScheduling/MedicalScheduling.csproj"
+
+# Copie todo o restante do projeto
+COPY src/ ./src
 WORKDIR "/src/MedicalScheduling"
 RUN dotnet build -c Release -o /app/build
 

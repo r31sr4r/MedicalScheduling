@@ -79,8 +79,8 @@ jobs:
 
     - name: Build and push Docker images
       uses: docker/build-push-action@v4.1.1
-      with:        
-        context: src
-        file: src/Dockerfile
+      with:
+        context: .
+        file: Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:${{ env.BUILD_TAG }},${{ secrets.DOCKER_HUB_USER}}/${{ env.IMAGE_NAME }}:latest
