@@ -19,7 +19,8 @@ public static class ConnectionsConfiguration
         IConfiguration configuration
     )
     {
-        var connectionString = configuration.GetConnectionString("MedicalSchedulingDb");
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__MedicalSchedulingDb")
+            ?? configuration.GetConnectionString("MedicalSchedulingDb");        
         services.AddDbContext<AppDbContext>(
             options => options.UseMySql(
                 connectionString,

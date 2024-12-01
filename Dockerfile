@@ -24,4 +24,10 @@ RUN dotnet publish -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# variáveis de ambiente para string de conexão e e-mail
+ENV ConnectionStrings__MedicalSchedulingDb=$DATABASE_CONNECTION_STRING
+ENV EmailSettings__SmtpPass=$SMTP_PASS
+ENV EmailSettings__FromEmail=$FROM_EMAIL
+
 ENTRYPOINT ["dotnet", "MedicalScheduling.dll"]

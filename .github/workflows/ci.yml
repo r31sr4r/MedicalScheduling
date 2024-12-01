@@ -84,3 +84,7 @@ jobs:
         file: Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:${{ env.BUILD_TAG }},${{ secrets.DOCKER_HUB_USER}}/${{ env.IMAGE_NAME }}:latest
+        build-args: |
+          DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
