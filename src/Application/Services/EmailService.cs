@@ -15,14 +15,14 @@ public class EmailService : IEmailService
 
     public EmailService(IConfiguration configuration)
     {
-        var emailSettings = configuration.GetSection("EmailSettings");
-        _smtpServer = emailSettings["SmtpServer"];
-        _smtpPort = int.Parse(emailSettings["SmtpPort"]);
-        _smtpUser = emailSettings["SmtpUser"];
-        _smtpPass = emailSettings["SmtpPass"];
-        _fromEmail = emailSettings["FromEmail"];
-        _fromName = emailSettings["FromName"];
+        _smtpServer = configuration["EmailSettings:SmtpServer"];
+        _smtpPort = int.Parse(configuration["EmailSettings:SmtpPort"]);
+        _smtpUser = configuration["EmailSettings:SmtpUser"];
+        _smtpPass = Environment.GetEnvironmentVariable("SMTP_PASS") ?? configuration["EmailSettings:SmtpPass"];
+        _fromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? configuration["EmailSettings:FromEmail"];
+        _fromName = configuration["EmailSettings:FromName"];
     }
+
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
